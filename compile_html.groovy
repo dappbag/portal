@@ -29,8 +29,6 @@ new File("${rootPath}/src").eachFile { file ->
                 html = html.replaceAll(name, text)
             }
 
-            html = "<!--${timestamp}-->\n" + html
-
             new File("${rootPath}/docs/${fileName}").newWriter().withWriter { w ->
                 w << html
             }
