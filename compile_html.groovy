@@ -29,7 +29,7 @@ new File("${rootPath}/src").eachFile { file ->
                 html = html.replaceAll(name, text)
             }
 
-            html = "<!--${timestamp}-->\n\r" + html
+            html = "<!--${timestamp}-->\n" + html
 
             new File("${rootPath}/docs/${fileName}").newWriter().withWriter { w ->
                 w << html
@@ -64,7 +64,7 @@ new File("${rootPath}/src/js").eachFile { file ->
                 jsCode = jsCode.replaceAll("//${name}", text)
             }
 
-            jsCode = "//${timestamp}\n\r" + jsCode
+            jsCode = "//${timestamp}\n" + jsCode
 
             new File("${rootPath}/docs/js/${fileName}").newWriter().withWriter { w ->
                 w << jsCode
