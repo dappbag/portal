@@ -1,23 +1,26 @@
-// # define working dir root
+// # 获得groovy文件所在目录为rootPath
 def rootPath = new File(".").getCanonicalPath()
 
 // # timestamp
 def timestamp = "built at ${new Date().format('yyyy-MM-dd HH:mm:ss')}"
 
-// # compile basic pages
-def htmlMap = [:]
+// # 编译页面（将_*.html 编译到 html文件）
+def htmlReplacementMap = [:]
+
+// 把src目录里面的下划线开头的html文件放入到 htmlReplacementMap
 new File("${rootPath}/src").eachFile { file ->
     if (!file.isDirectory()) {
         def fileName = file.getName()
         if (fileName.startsWith("_"))
-            htmlMap.put fileName, file.text
+            htmlReplacementMap.put fileName, file.text
     }
 
 }
 
 
-htmlMap.put "_RP_CURRENT_TIME", "${System.currentTimeMillis()}"
+htmlReplacementMap.put "_RP_CURRENT_TIME", "${System.currentTimeMillis()}"
 
+// 替换src目录里面非下划线开头的html文件中的 html 引用
 new File("${rootPath}/src").eachFile { file ->
     if (!file.isDirectory()) {
         def fileName = file.getName()
@@ -25,7 +28,7 @@ new File("${rootPath}/src").eachFile { file ->
         if (!fileName.startsWith("_")) {
             def html = file.text
 
-            htmlMap.each { name, text ->
+            htmlReplacementMap.each { name, text ->
                 html = html.replaceAll(name, text)
             }
 
@@ -36,20 +39,22 @@ new File("${rootPath}/src").eachFile { file ->
     }
 }
 
-// # compile js
-def jsMap = [:]
+// # 编译js（将 _*.js 编译进入js文件）
+def jsReplacementMap = [:]
+
+// 将src/js目录的的 下划线开头的js收集到  jsReplacementMap
 new File("${rootPath}/src/js").eachFile { file ->
     if (!file.isDirectory()) {
         def fileName = file.getName()
         if (fileName.startsWith("_"))
-            jsMap.put fileName, file.text
+            jsReplacementMap.put fileName, file.text
     }
 }
 
-
-def gameFolder = new File("${rootPath}/docs/js")
-if (!gameFolder.exists())
-    gameFolder.mkdir()
+// 用 jsReplacementMap 里面的文件替换js文件并copy js文件到 docs/js 目录
+def docJsFolder = new File("${rootPath}/docs/js")
+if (!docJsFolder.exists())
+    docJsFolder.mkdir()
 
 new File("${rootPath}/src/js").eachFile { file ->
     if (!file.isDirectory()) {
@@ -58,7 +63,7 @@ new File("${rootPath}/src/js").eachFile { file ->
         if (!fileName.startsWith("_")) {
             def jsCode = file.text
 
-            jsMap.each { name, text ->
+            jsReplacementMap.each { name, text ->
                 jsCode = jsCode.replaceAll("//${name}", text)
             }
 
@@ -72,12 +77,12 @@ new File("${rootPath}/src/js").eachFile { file ->
 }
 
 // # copy resources
-String sourceDir = "${rootPath}/src/res"
-String destinationDir = "${rootPath}/docs/res"
-
-new AntBuilder().copy(todir: destinationDir) {
-    fileset(dir: sourceDir)
+["res"].each { folder ->
+    new AntBuilder().copy(todir: "${rootPath}/docs/${folder}") {
+        fileset(dir: "${rootPath}/src/${folder}")
+    }
 }
+
 
 
 println "${timestamp} ended"
